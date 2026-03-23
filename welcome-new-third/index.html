@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>クリックで弾ける文字</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      
+      body {
+        width: 100%;
+        height: 100vh;
+        margin: 0;
+        padding: 0;
+        background: #ffffff;
+        cursor: crosshair;
+        overflow: hidden;
+      }
+      
+      /* 日付表示 */
+      .date-display {
+        position: fixed;
+        top: 85%;
+        left: 80%;
+        transform: translate(-50%, -50%);
+        font-size: 12px;
+        font-weight: normal;
+        color: #333;
+        z-index: 5;
+        user-select: none;
+        text-align: center;
+      }
+      
+      /* テキスト入力フィールド */
+      .text-input-container {
+        position: fixed;
+        top: calc(85% + 30px);
+        left: 80%;
+        transform: translate(-50%, -50%);
+        z-index: 5;
+        text-align: center;
+      }
+      
+      .text-input {
+        padding: 4px 8px;
+        border: none;
+        border-bottom: 1px solid #333;
+        font-size: 14px;
+        width: 180px;
+        outline: none;
+        background: transparent;
+      }
+      
+      @keyframes bounce {
+        0% {
+          opacity: 1;
+          transform: translate(0, 0) scale(1);
+        }
+        50% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 0;
+          transform: translate(var(--tx), var(--ty)) scale(0.5);
+        }
+      }
+      
+      .floating-text {
+        animation: bounce 1s ease-out forwards;
+        user-select: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+      }
+      
+      /* クリックアイコン */
+      .click-icon {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 24px;
+        font-weight: bold;
+        color: #333;
+        cursor: pointer;
+        z-index: 10;
+        user-select: none;
+        text-align: center;
+      }
+      
+      @keyframes pulse {
+        0%, 100% {
+          transform: translate(-50%, -50%) scale(1);
+          opacity: 1;
+        }
+        50% {
+          transform: translate(-50%, -50%) scale(1.2);
+          opacity: 0.7;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- 日付表示 -->
+    <div class="date-display" id="dateDisplay"></div>
+    
+    <!-- テキスト入力フィールド -->
+    <div class="text-input-container">
+      <input type="text" class="text-input" id="customTextInput" placeholder="ここにテキストを入力" />
+    </div>
+    
+    <!-- クリックアイコン -->
+    <div class="click-icon">MOUSE CLICK!!</div>
+    
+    <script>
+      // 今日の日付を表示
+      function displayCurrentDate() {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        const dateString = `${year}/${month}/${day}`;
+        
+        document.getElementById('dateDisplay').textContent = dateString;
+      }
+      
+      // ページ読み込み時に日付を表示
+      displayCurrentDate();
+      
+      // ランダムな文字のリスト
+      const characters = ['メ', 'デ', 'ィ', 'ア', 'デ', 'ザ', 'イ', 'ン', '領', '域', 'に', 'よ', 'う', 'こ', 'そ', '！'];
+      
+      // ランダムなフォントのリスト
+      const fonts = ['serif', 'sans-serif', 'monospace', 'cursive', 'fantasy', '"Georgia", serif', '"Arial", sans-serif', '"Courier New", monospace'];
+      
+      // ランダム数値を取得
+      function getRandomNumber(min, max) {
+        return Math.random() * (max - min) + min;
+      }
+      
+      // 文字を生成して弾く関数
+      function createBounceEffect(x, y, count = null) {
+        // countが指定されない場合はランダムに（1～3個）
+        const charCount = count || Math.floor(getRandomNumber(1, 3));
+        
+        for (let i = 0; i < charCount; i++) {
+          // ランダムな文字を選択
+          const char = characters[Math.floor(Math.random() * characters.length)];
+          
+          // 要素を作成
+          const element = document.createElement('div');
+          element.classList.add('floating-text');
+          element.textContent = char;
+          
+          // position: fixed を明示
+          element.style.position = 'fixed';
+          
+          // ランダムなサイズ（23～63px）
+          const size = getRandomNumber(23, 63);
+          element.style.fontSize = size + 'px';
+          
+          // ランダムなフォント
+          const font = fonts[Math.floor(Math.random() * fonts.length)];
+          element.style.fontFamily = font;
+          
+          // ランダムな色
+          const colors = ['#FF6B6B', '#4ECDC4', '#FFE66D', '#95E1D3', '#F38181', '#AA96DA', '#FCBAD3', '#A8E6CF'];
+          const color = colors[Math.floor(Math.random() * colors.length)];
+          element.style.color = color;
+          
+          // クリック位置を正確に設定
+          element.style.left = x + 'px';
+          element.style.top = y + 'px';
+          
+          // ランダムな角度とスケール
+          const rotation = getRandomNumber(-30, 30);
+          const initialScale = getRandomNumber(0.6, 1.4);
+          element.style.transform = `translate(-50%, -50%) rotate(${rotation}deg) scale(${initialScale})`;
+          
+          // ランダムな方向（角度と距離）
+          const angle = getRandomNumber(0, Math.PI * 2);
+          const distance = getRandomNumber(30, 450);
+          const tx = Math.cos(angle) * distance * getRandomNumber(0.7, 2.2);
+          const ty = Math.sin(angle) * distance * getRandomNumber(0.7, 2.2);
+          
+          // CSSから参照される変数を設定
+          element.style.setProperty('--tx', tx + 'px');
+          element.style.setProperty('--ty', ty + 'px');
+          
+          // DOMに追加
+          document.body.appendChild(element);
+          
+          // 各文字ごとに異なるアニメーション時間を設定
+          const animationDuration = getRandomNumber(0.8, 1.5); // 0.8～1.5秒の範囲でランダム
+          element.style.animationDuration = animationDuration + 's';
+          
+          // アニメーション完了後に要素を削除
+          setTimeout(() => {
+            element.remove();
+          }, animationDuration * 1000);
+        }
+      }
+      
+      // 入力されたテキストの文字をランダムに出現させる関数
+      function createTextBounceEffect(x, y, text) {
+        const textChars = text.split('');
+        
+        for (let i = 0; i < textChars.length; i++) {
+          const char = textChars[i];
+          
+          // 要素を作成
+          const element = document.createElement('div');
+          element.classList.add('floating-text');
+          element.textContent = char;
+          
+          // position: fixed を明示
+          element.style.position = 'fixed';
+          
+          // ランダムなサイズ（30～70px）
+          const size = getRandomNumber(30, 70);
+          element.style.fontSize = size + 'px';
+          
+          // ランダムなフォント
+          const font = fonts[Math.floor(Math.random() * fonts.length)];
+          element.style.fontFamily = font;
+          
+          // ランダムな色
+          const colors = ['#FF6B6B', '#4ECDC4', '#FFE66D', '#95E1D3', '#F38181', '#AA96DA', '#FCBAD3', '#A8E6CF'];
+          const color = colors[Math.floor(Math.random() * colors.length)];
+          element.style.color = color;
+          
+          // クリック位置を正確に設定
+          element.style.left = x + 'px';
+          element.style.top = y + 'px';
+          
+          // ランダムな角度とスケール
+          const rotation = getRandomNumber(-35, 35);
+          const initialScale = getRandomNumber(0.7, 1.5);
+          element.style.transform = `translate(-50%, -50%) rotate(${rotation}deg) scale(${initialScale})`;
+          
+          // ランダムな方向（360度全方向）
+          const angle = getRandomNumber(0, Math.PI * 2);
+          const distance = getRandomNumber(40, 550);
+          const tx = Math.cos(angle) * distance * getRandomNumber(0.6, 2.5);
+          const ty = Math.sin(angle) * distance * getRandomNumber(0.6, 2.5);
+          
+          // CSSから参照される変数を設定
+          element.style.setProperty('--tx', tx + 'px');
+          element.style.setProperty('--ty', ty + 'px');
+          
+          // DOMに追加
+          document.body.appendChild(element);
+          
+          // 各文字ごとに異なるアニメーション時間を設定
+          const animationDuration = getRandomNumber(1.0, 2.0);
+          element.style.animationDuration = animationDuration + 's';
+          
+          // アニメーション完了後に要素を削除
+          setTimeout(() => {
+            element.remove();
+          }, animationDuration * 1000);
+        }
+      }
+      function createRandomFloatingText() {
+        // ランダムな位置を生成
+        const x = getRandomNumber(0, window.innerWidth);
+        const y = getRandomNumber(0, window.innerHeight);
+        
+        // 1～3個の文字を出現させる
+        createBounceEffect(x, y, Math.floor(getRandomNumber(1, 4)));
+      }
+      
+      // クリックイベント（入力されたテキストの文字をランダムに出現）
+      document.addEventListener('click', (e) => {
+        const x = e.clientX;
+        const y = e.clientY;
+        
+        // テキスト入力フィールドからテキストを取得
+        const inputText = document.getElementById('customTextInput').value;
+        
+        if (inputText.trim() === '') {
+          // テキストが入力されていない場合はデフォルトの文字を使用
+          createBounceEffect(x, y, Math.floor(getRandomNumber(8, 15)));
+        } else {
+          // 入力されたテキストの文字をランダムに出現
+          createTextBounceEffect(x, y, inputText);
+        }
+      });
+    </script>
+  </body>
+</html>
